@@ -794,7 +794,7 @@ class Table extends BaseDbTableResource
             }
         }
 
-        return $outArray;
+        return empty($outArray) ? ['*'] : $outArray;
     }
 
     /**
