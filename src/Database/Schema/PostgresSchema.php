@@ -742,38 +742,73 @@ EOD;
             $bindings[':schema'] = $schema;
         }
 
-        $sql = <<<MYSQL
+        // Check if ROUTINE_TYPE column exists (PostgreSQL 11+)
+        $hasRoutineType = false;
+        try {
+            $checkSql = "SELECT column_name FROM information_schema.columns 
+                         WHERE table_schema = 'information_schema' 
+                         AND table_name = 'routines' 
+                         AND column_name = 'routine_type'";
+            $result = $this->connection->select($checkSql);
+            $hasRoutineType = !empty($result);
+        } catch (\Exception $e) {
+            // Column doesn't exist, fall back to old behavior
+        }
+
+        if ($hasRoutineType) {
+            // PostgreSQL 11+ with ROUTINE_TYPE column
+            $sql = <<<SQL
+SELECT ROUTINE_NAME, DATA_TYPE, ROUTINE_TYPE FROM INFORMATION_SCHEMA.ROUTINES {$where}
+SQL;
+        } else {
+            // PostgreSQL < 11, no ROUTINE_TYPE column
+            $sql = <<<SQL
 SELECT ROUTINE_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.ROUTINES {$where}
-MYSQL;
+SQL;
+        }
 
         $rows = $this->connection->select($sql, $bindings);
 
-        $sql = <<<MYSQL
+        // For older PostgreSQL versions, we need to determine procedures vs functions differently
+        $procedures = [];
+        if (!$hasRoutineType) {
+            $sql = <<<SQL
 SELECT r.ROUTINE_NAME
 FROM INFORMATION_SCHEMA.PARAMETERS AS p JOIN INFORMATION_SCHEMA.ROUTINES AS r ON r.SPECIFIC_NAME = p.SPECIFIC_NAME 
 WHERE p.SPECIFIC_SCHEMA = :schema AND (p.PARAMETER_MODE = 'INOUT' OR p.PARAMETER_MODE = 'OUT')
-MYSQL;
-
-        $procedures = $this->selectColumn($sql, $bindings);
+SQL;
+            $procedures = $this->selectColumn($sql, $bindings);
+        }
 
         $names = [];
         foreach ($rows as $row) {
             $row = array_change_key_case((array)$row, CASE_UPPER);
             $resourceName = array_get($row, 'ROUTINE_NAME');
-            switch (strtoupper($type)) {
-                case 'PROCEDURE':
-                    if (false === array_search($resourceName, $procedures)) {
-                        // only way to determine proc from func is by params??
-                        continue 2;
-                    }
-                    break;
-                case 'FUNCTION':
-                    if (false !== array_search($resourceName, $procedures)) {
-                        // only way to determine proc from func is by params??
-                        continue 2;
-                    }
-                    break;
+            
+            if ($hasRoutineType) {
+                // Use ROUTINE_TYPE column for PostgreSQL 11+
+                $routineType = array_get($row, 'ROUTINE_TYPE');
+                if (strtoupper($type) !== strtoupper($routineType)) {
+                    continue;
+                }
+            } else {
+                // Fall back to old behavior for PostgreSQL < 11
+                switch (strtoupper($type)) {
+                    case 'PROCEDURE':
+                        if (false === array_search($resourceName, $procedures)) {
+                            // Only procedures have INOUT or OUT parameters
+                            continue 2;
+                        }
+                        break;
+                    case 'FUNCTION':
+                        if (false !== array_search($resourceName, $procedures)) {
+                            // Functions don't have INOUT or OUT parameters
+                            continue 2;
+                        }
+                        break;
+                }
             }
+            
             $schemaName = $schema;
             $internalName = $schemaName . '.' . $resourceName;
             $name = $resourceName;
@@ -872,6 +907,21 @@ MYSQL;
     {
         $paramStr = $this->getRoutineParamString($param_schemas, $values);
 
+        // PostgreSQL 11+ requires CALL for procedures, older versions don't have real procedures
+        // Check PostgreSQL version to determine which syntax to use
+        try {
+            $versionResult = $this->connection->select("SELECT current_setting('server_version_num') as version");
+            $versionNum = isset($versionResult[0]) ? intval($versionResult[0]->version) : 0;
+            
+            // PostgreSQL 11 is version 110000
+            if ($versionNum >= 110000) {
+                return "CALL {$routine->quotedName}($paramStr);";
+            }
+        } catch (\Exception $e) {
+            // If we can't determine version, fall back to old behavior
+        }
+        
+        // For older versions or if version check fails, use SELECT
         return "SELECT * FROM {$routine->quotedName}($paramStr);";
     }
 
