@@ -1,7 +1,7 @@
 {
-  "name":        "dreamfactory/df-sqldb",
+  "name": "dreamfactory/df-sqldb",
   "description": "The DreamFactory(tm) SQL DB Service.",
-  "keywords":    [
+  "keywords": [
     "dreamfactory",
     "api",
     "rest",
@@ -13,35 +13,35 @@
     "database",
     "db"
   ],
-  "homepage":    "https://www.dreamfactory.com/",
-  "license":     "Apache-2.0",
-  "authors":     [
+  "homepage": "https://www.dreamfactory.com/",
+  "license": "Apache-2.0",
+  "authors": [
     {
-      "name":  "Arif Islam",
+      "name": "Arif Islam",
       "email": "arifislam@dreamfactory.com"
     },
     {
-      "name":  "Lee Hicks",
+      "name": "Lee Hicks",
       "email": "leehicks@dreamfactory.com"
     }
   ],
-  "support":     {
-    "email":  "dspsupport@dreamfactory.com",
+  "support": {
+    "email": "dspsupport@dreamfactory.com",
     "source": "https://github.com/dreamfactorysoftware/df-sqldb",
     "issues": "https://github.com/dreamfactorysoftware/df-sqldb/issues",
-    "wiki":   "https://wiki.dreamfactory.com"
+    "wiki": "https://wiki.dreamfactory.com"
   },
   "minimum-stability": "dev",
-  "prefer-stable":     true,
-  "require":     {
-    "dreamfactory/df-database": "~1.3"
+  "prefer-stable": true,
+  "require": {
+    "dreamfactory/df-database": "~1.1"
   },
-  "autoload":    {
+  "autoload": {
     "psr-4": {
       "DreamFactory\\Core\\SqlDb\\": "src/"
     }
   },
-  "extra":       {
+  "extra": {
     "branch-alias": {
       "dev-develop": "0.15.x-dev"
     },
