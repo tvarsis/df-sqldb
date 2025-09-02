@@ -475,7 +475,7 @@ class Table extends BaseDbTableResource
             return null;
         }
 
-        $service = $this->parent->getServiceName();
+        $service = $this->parent->getDriverName();
 
         $filter = trim($filter);
         // todo use smarter regex
