@@ -581,6 +581,8 @@ class Table extends BaseDbTableResource
                 }
 
                 $sqlOpLocalized = static::localizeOperator($sqlOp);
+                $colName = $info->name;
+                // \Log::warning('[DEBUG] out/op/value ' . $colName . $sqlOp . $value);
 
                 // Changing LIKE to ILIKE for PostgreSQL to enforce case insensitivity
                 if ($service === 'pgsql') {
@@ -591,7 +593,19 @@ class Table extends BaseDbTableResource
                         DbComparisonOperators::ENDS_WITH,
                     ];
 
-                    if (in_array($sqlOp, $pgIlikeOps, true)) {
+                    $likeColumns = [
+                        'product_name',
+                        'product_desc',
+                        'manufacturer',
+                        'product_version',
+                        'file_version',
+                        'executable_path',
+                        'executable_file',
+                        'executable_extention',
+                        'md5'
+                    ];
+
+                    if (in_array($sqlOp, $pgIlikeOps, true) && !in_array($colName, $likeColumns, true)) {
                         $sqlOpLocalized = 'ILIKE';
                     }
                 }
