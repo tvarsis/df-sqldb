@@ -579,6 +579,7 @@ class Table extends BaseDbTableResource
 
                 $sqlOpLocalized = static::localizeOperator($sqlOp);
 
+                logger('Identified service: ' . $service);
                 // Changing LIKE to ILIKE for PostgreSQL to enforce case insensitivity
                 if ($service === 'pgsql') {
                     $pgIlikeOps = [
@@ -590,10 +591,13 @@ class Table extends BaseDbTableResource
 
                     if (in_array($sqlOp, $pgIlikeOps, true)) {
                         $sqlOpLocalized = 'ILIKE';
+                        logger('Set it to ILIKE: ');
                     }
                 }
 
                 $sqlOp = $sqlOpLocalized;
+
+                logger('sqlOp: ' . $sqlOp);
 
                 if ($negate) {
                     $sqlOp = DbLogicalOperators::NOT_STR . ' ' . $sqlOp;
