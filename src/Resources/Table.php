@@ -471,15 +471,14 @@ class Table extends BaseDbTableResource
      */
     protected function parseFilterString($filter, array &$out_params, $fields_info, array $in_params = [])
     {
-        error_log('[DEBUG] parseFilterString called with filter=' . $filter);
-        \Log::info('IN parseFilterString ' . $filter);
+        \Log::warning('IN parseFilterString ' . $filter);
 
         if (empty($filter)) {
             return null;
         }
 
         $service = $this->parent->getDriverName();
-        error_log('[DEBUG] service1 ' . $service);
+        \Log::warning('[DEBUG] service1 ' . $service);
 
         $filter = trim($filter);
         // todo use smarter regex
@@ -583,8 +582,9 @@ class Table extends BaseDbTableResource
 
                 $sqlOpLocalized = static::localizeOperator($sqlOp);
 
-                error_log('[DEBUG] sqlOp before: ' . $sqlOp);
-                error_log('[DEBUG] service2 ' . $service);
+                \Log::warning('[DEBUG] sqlOp before: ' . $sqlOp);
+                \Log::warning('[DEBUG] service2 ' . $service);
+
                 // Changing LIKE to ILIKE for PostgreSQL to enforce case insensitivity
                 if ($service === 'pgsql') {
                     $pgIlikeOps = [
@@ -596,13 +596,13 @@ class Table extends BaseDbTableResource
 
                     if (in_array($sqlOp, $pgIlikeOps, true)) {
                         $sqlOpLocalized = 'ILIKE';
-                        error_log('[DEBUG] Set it to ILIKE');
+                        \Log::warning('[DEBUG] Set it to ILIKE');
                     }
                 }
 
                 $sqlOp = $sqlOpLocalized;
 
-                error_log('[DEBUG] sqlOp after: ' . $sqlOp);
+                \Log::warning('[DEBUG] sqlOp after: ' . $sqlOp);
 
                 if ($negate) {
                     $sqlOp = DbLogicalOperators::NOT_STR . ' ' . $sqlOp;
