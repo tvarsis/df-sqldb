@@ -472,6 +472,8 @@ class Table extends BaseDbTableResource
     protected function parseFilterString($filter, array &$out_params, $fields_info, array $in_params = [])
     {
         error_log('[DEBUG] parseFilterString called with filter=' . $filter);
+        \Log::info('IN parseFilterString ' . $filter);
+        throw new \Exception('parseFilterString reached');
         if (empty($filter)) {
             return null;
         }
