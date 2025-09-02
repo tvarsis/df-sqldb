@@ -4,7 +4,6 @@ namespace DreamFactory\Core\SqlDb\Services;
 
 use DreamFactory\Core\SqlDb\Resources\StoredFunction;
 use DreamFactory\Core\SqlDb\Resources\StoredProcedure;
-use DreamFactory\Core\Enums\DbComparisonOperators;
 
 /**
  * Class PostgreSqlDb
@@ -36,26 +35,4 @@ class PostgreSqlDb extends SqlDb
 
         return $handlers;
     }
-
-    public static function localizeOperator($operator)
-    {
-        $pgIlikeOps = [
-            DbComparisonOperators::LIKE,
-            DbComparisonOperators::CONTAINS,
-            DbComparisonOperators::STARTS_WITH,
-            DbComparisonOperators::ENDS_WITH,
-        ];
-
-        if (in_array($operator, $pgIlikeOps, true)) {
-            return 'ILIKE';
-        }
-
-        // fallback to parent or default
-        if (method_exists(get_parent_class(), 'localizeOperator')) {
-            return parent::localizeOperator($operator);
-        }
-
-        return $operator;
-    }
-
 }

@@ -258,7 +258,7 @@ class Table extends BaseDbTableResource
                 throw new BadRequestException('Invalid order by clause in request.');
             }
 
-            if(stripos($order, 'sleep(') !== false){
+            if (stripos($order, 'sleep(') !== false) {
                 throw new BadRequestException('Use of the sleep() function not supported.');
             }
 
@@ -358,7 +358,7 @@ class Table extends BaseDbTableResource
         $result = $builder->get();
 
         $result->transform(function ($item) use ($schema) {
-            $item = (array)$item;
+            $item = (array) $item;
             foreach ($item as $field => &$value) {
                 if ($fieldInfo = $schema->getColumn($field, true)) {
                     $value = $this->parent->getSchema()->typecastToClient($value, $fieldInfo);
@@ -475,6 +475,8 @@ class Table extends BaseDbTableResource
             return null;
         }
 
+        $service = $this->parent->getServiceName();
+
         $filter = trim($filter);
         // todo use smarter regex
         // handle logical operators first
@@ -528,7 +530,8 @@ class Table extends BaseDbTableResource
                 if (false !== strpos($field, ' ')) {
                     $parts = explode(' ', $field);
                     $partsCount = count($parts);
-                    if (($partsCount > 1) &&
+                    if (
+                        ($partsCount > 1) &&
                         (0 === strcasecmp($parts[$partsCount - 1], trim(DbLogicalOperators::NOT_STR)))
                     ) {
                         // negation on left side of operator
@@ -545,7 +548,8 @@ class Table extends BaseDbTableResource
 
                 // make sure we haven't chopped off right side too much
                 $value = trim(substr($filter, $pos + strlen($paddedOp)));
-                if ((0 !== strpos($value, "'")) &&
+                if (
+                    (0 !== strpos($value, "'")) &&
                     (0 !== $lpc = substr_count($value, '(')) &&
                     ($lpc !== $rpc = substr_count($value, ')'))
                 ) {
@@ -573,7 +577,21 @@ class Table extends BaseDbTableResource
                     $value = $this->parseFilterValue($value, $info, $out_params, $in_params);
                 }
 
-                $sqlOp = static::localizeOperator($sqlOp);
+                if ($service === 'pgsql') {
+                    $pgIlikeOps = [
+                        DbComparisonOperators::LIKE,
+                        DbComparisonOperators::CONTAINS,
+                        DbComparisonOperators::STARTS_WITH,
+                        DbComparisonOperators::ENDS_WITH,
+                    ];
+
+                    if (in_array($sqlOp, $pgIlikeOps, true)) {
+                        $sqlOp = 'ILIKE';
+                    }
+                } else {
+                    $sqlOp = static::localizeOperator($sqlOp);
+                }
+
                 if ($negate) {
                     $sqlOp = DbLogicalOperators::NOT_STR . ' ' . $sqlOp;
                 }
@@ -620,7 +638,8 @@ class Table extends BaseDbTableResource
 
         // remove quoting on strings if used, i.e. 1.x required them
         if (is_string($value)) {
-            if ((0 === strcmp("'" . trim($value, "'") . "'", $value)) ||
+            if (
+                (0 === strcmp("'" . trim($value, "'") . "'", $value)) ||
                 (0 === strcmp('"' . trim($value, '"') . '"', $value))
             ) {
                 $value = substr($value, 1, -1);
@@ -984,7 +1003,7 @@ class Table extends BaseDbTableResource
 
                 $idName =
                     (isset($this->tableIdsInfo, $this->tableIdsInfo[0], $this->tableIdsInfo[0]->name))
-                        ? $this->tableIdsInfo[0]->name : null;
+                    ? $this->tableIdsInfo[0]->name : null;
                 $out = (is_array($id)) ? $id : [$idName => $id];
 
                 // add via record, so batch processing can retrieve extras
@@ -1038,7 +1057,7 @@ class Table extends BaseDbTableResource
 
                 $idName =
                     (isset($this->tableIdsInfo, $this->tableIdsInfo[0], $this->tableIdsInfo[0]->name))
-                        ? $this->tableIdsInfo[0]->name : null;
+                    ? $this->tableIdsInfo[0]->name : null;
                 $out = (is_array($id)) ? $id : [$idName => $id];
 
                 // add via record, so batch processing can retrieve extras
@@ -1075,7 +1094,7 @@ class Table extends BaseDbTableResource
                 if (empty($out)) {
                     $idName =
                         (isset($this->tableIdsInfo, $this->tableIdsInfo[0], $this->tableIdsInfo[0]->name))
-                            ? $this->tableIdsInfo[0]->name : null;
+                        ? $this->tableIdsInfo[0]->name : null;
                     $out = (is_array($id)) ? $id : [$idName => $id];
                 }
                 break;
@@ -1219,8 +1238,10 @@ class Table extends BaseDbTableResource
                                 }
                             }
                             if (!$found) {
-                                $out[$index] = new NotFoundException("Record with identifier '" . print_r($id,
-                                        true) . "' not found.");
+                                $out[$index] = new NotFoundException("Record with identifier '" . print_r(
+                                    $id,
+                                    true
+                                ) . "' not found.");
                             }
                         }
                     } else {
@@ -1251,8 +1272,10 @@ class Table extends BaseDbTableResource
                                 }
                             }
                             if (!$found) {
-                                $out[$index] = new NotFoundException("Record with identifier '" . print_r($id,
-                                        true) . "' not found.");
+                                $out[$index] = new NotFoundException("Record with identifier '" . print_r(
+                                    $id,
+                                    true
+                                ) . "' not found.");
                             }
                         }
 
