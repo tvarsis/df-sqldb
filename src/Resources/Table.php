@@ -473,7 +473,7 @@ class Table extends BaseDbTableResource
     {
         error_log('[DEBUG] parseFilterString called with filter=' . $filter);
         \Log::info('IN parseFilterString ' . $filter);
-        throw new \Exception('parseFilterString reached');
+
         if (empty($filter)) {
             return null;
         }
