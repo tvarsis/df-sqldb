@@ -12,6 +12,10 @@ use DreamFactory\Core\SqlDb\Resources\StoredProcedure;
  */
 class PostgreSqlDb extends SqlDb
 {
+    public static function getDriverName()
+    {
+        return 'pgsql';
+    }
     public static function adaptConfig(array &$config)
     {
         $config['driver'] = 'pgsql';

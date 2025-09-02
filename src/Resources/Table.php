@@ -478,7 +478,7 @@ class Table extends BaseDbTableResource
         }
 
         $service = $this->parent->getDriverName();
-        \Log::warning('[DEBUG] service1 ' . $service);
+        // \Log::warning('[DEBUG] service1 ' . $service);
 
         $filter = trim($filter);
         // todo use smarter regex
@@ -582,9 +582,6 @@ class Table extends BaseDbTableResource
 
                 $sqlOpLocalized = static::localizeOperator($sqlOp);
 
-                \Log::warning('[DEBUG] sqlOp before: ' . $sqlOp);
-                \Log::warning('[DEBUG] service2 ' . $service);
-
                 // Changing LIKE to ILIKE for PostgreSQL to enforce case insensitivity
                 if ($service === 'pgsql') {
                     $pgIlikeOps = [
@@ -596,13 +593,10 @@ class Table extends BaseDbTableResource
 
                     if (in_array($sqlOp, $pgIlikeOps, true)) {
                         $sqlOpLocalized = 'ILIKE';
-                        \Log::warning('[DEBUG] Set it to ILIKE');
                     }
                 }
 
                 $sqlOp = $sqlOpLocalized;
-
-                \Log::warning('[DEBUG] sqlOp after: ' . $sqlOp);
 
                 if ($negate) {
                     $sqlOp = DbLogicalOperators::NOT_STR . ' ' . $sqlOp;
