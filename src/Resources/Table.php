@@ -596,7 +596,7 @@ class Table extends BaseDbTableResource
                     $likeColumns = [
                         'product_name',
                         'product_desc',
-                        'manufacturer',
+                        // 'manufacturer',
                         'product_version',
                         'file_version',
                         'executable_path',
