@@ -121,7 +121,7 @@ class Table extends BaseDbTableResource
             $serverFilter = $this->buildQueryStringFromData($ssFilters);
             if (!empty($serverFilter)) {
                 Session::replaceLookups($serverFilter);
-                $filterString = $this->parseFilterString($serverFilter, $params, $this->tableFieldsInfo);
+                $filterString = $this->parseFilterString($serverFilter, $params, fields_info: $this->tableFieldsInfo);
                 $builder->whereRaw($filterString, $params);
                 $builder->delete();
             } else {
@@ -620,6 +620,10 @@ class Table extends BaseDbTableResource
                     $out = $this->parent->getConnection()->raw($function);
                 } else {
                     $out = $info->quotedName;
+
+                    if ($service === 'pgsql' && $info->type == 'string' && DbComparisonOperators::requiresValueList($sqlOp)) {
+                        $out = '(' . $out . ')::citext';
+                    }
                 }
                 $out .= " $sqlOp";
                 $out .= (isset($value) ? " $value" : null);
